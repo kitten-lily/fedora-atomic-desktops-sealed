@@ -1,14 +1,22 @@
 # SPDX-FileCopyrightText: Timothée Ravier <tim@siosm.fr>
 # SPDX-License-Identifier: CC0-1.0
 
-# Container registry to get the base images from
-base_registry := "quay.io/fedora-ostree-desktops"
+# Variants and the container registry location to get them
+# Just doesn't have a native dict type, but quoted bash dictionary works fine
+variant_repos := '(
+    [silverblue]="quay.io/fedora-ostree-desktops/silverblue"
+    [kinoite]="quay.io/fedora-ostree-desktops/kinoite"
+)'
+
+# Version of the container image to use as a base for each variant
+version := "44.20260504.0"
+variant_versions := '(
+    [silverblue]="44.20260504.0"
+    [kinoite]="44.20260504.0"
+)'
 
 # Container registry where the images will be pushed
-registry := "quay.io/fedora-atomic-desktops-sealed"
-
-# Version of the container image to use as base
-version := "44.20260426.0"
+dest_registry := "quay.io/fedora-atomic-desktops-sealed"
 
 # Major Fedora version used
 release := "44"
@@ -19,9 +27,9 @@ release := "44"
 systemd_boot_container := "localhost/systemd-boot:" + release
 
 # Container image with the tools for signing UKIs
-# Defaults to locally built container image. Uncomment to use pre-built image.
-# signing_tools_container := "quay.io/fedora-atomic-desktops-sealed/tools:" + release
-signing_tools_container := "localhost/tools:" + release
+# Defaults to pre-built image. Uncomment to use locally built container image.
+# signing_tools_container := "localhost/tools:" + release
+signing_tools_container := "quay.io/fedora-atomic-desktops-sealed/tools:" + release
 
 # How to connect to libvirt (either system or session)
 libvirt_uri := "qemu:///system"
@@ -64,12 +72,18 @@ build-tools:
 build variant:
     #!/bin/bash
     set -euo pipefail
+
+    declare -A variant_repos={{variant_repos}}
+    declare -A variant_versions={{variant_versions}}
+    repo="${variant_repos["{{variant}}"]}"
+    version="${variant_versions["{{variant}}"]}"
+
     podman build \
-        --build-arg=BASE={{base_registry}}/{{variant}}:{{version}} \
+        --build-arg=BASE=${repo}:${version} \
         --build-arg=SYSTEMDBOOT={{systemd_boot_container}} \
         --build-arg=TOOLS={{signing_tools_container}} \
-        --tag {{registry}}/{{variant}}:{{version}} \
-        --tag {{registry}}/{{variant}}:{{release}} \
+        --tag {{dest_registry}}/{{variant}}:${version} \
+        --tag {{dest_registry}}/{{variant}}:{{release}} \
         --skip-unused-stages=false \
         --volume $(pwd):/run/src \
         --security-opt=label=disable \
@@ -83,16 +97,22 @@ build variant:
 build-base variant:
     #!/bin/bash
     set -euo pipefail
+
+    declare -A variant_repos={{variant_repos}}
+    declare -A variant_versions={{variant_versions}}
+    repo="${variant_repos["{{variant}}"]}"
+    version="${variant_versions["{{variant}}"]}"
+
     podman build \
         --file Containerfile.kernel \
-        --build-arg=BASE={{base_registry}}/{{variant}}:{{version}} \
-        --tag {{registry}}/{{variant}}-kernel:{{version}} \
+        --build-arg=BASE=${repo}:${version} \
+        --tag {{dest_registry}}/{{variant}}-kernel:${version} \
         .
     podman build \
         --file Containerfile.base \
-        --build-arg=BASE={{base_registry}}/{{variant}}:{{version}} \
+        --build-arg=BASE=${repo}:${version} \
         --build-arg=SYSTEMDBOOT={{systemd_boot_container}} \
-        --tag {{registry}}/{{variant}}-base:{{version}} \
+        --tag {{dest_registry}}/{{variant}}-base:${version} \
         --skip-unused-stages=false \
         --volume $(pwd):/run/src \
         --security-opt=label=disable \
@@ -103,19 +123,24 @@ build-base variant:
 build-uki variant gpu="generic":
     #!/bin/bash
     set -euo pipefail
+
+    declare -A variant_versions={{variant_versions}}
+    version="${variant_versions["{{variant}}"]}"
+
     if [[ "{{gpu}}" == "generic" ]]; then
         repo="{{variant}}"
     else
         repo="{{variant}}-{{gpu}}"
     fi
+
     podman build \
         --file Containerfile.uki \
-        --build-arg=BASE={{registry}}/{{variant}}-base:{{version}} \
-        --build-arg=KERNEL={{registry}}/{{variant}}-kernel:{{version}} \
+        --build-arg=BASE={{dest_registry}}/{{variant}}-base:${version} \
+        --build-arg=KERNEL={{dest_registry}}/{{variant}}-kernel:${version} \
         --build-arg=GPU_FAMILY={{gpu}} \
         --build-arg=TOOLS={{signing_tools_container}} \
-        --tag {{registry}}/${repo}:{{version}} \
-        --tag {{registry}}/${repo}:{{release}} \
+        --tag {{dest_registry}}/${repo}:${version} \
+        --tag {{dest_registry}}/${repo}:{{release}} \
         --volume $(pwd):/run/src \
         --security-opt=label=disable \
         --secret=id=secureboot_key,src=keys/db/db.key \
@@ -127,22 +152,30 @@ build-uki variant gpu="generic":
 qcow2 variant:
     #!/bin/bash
     set -euo pipefail
+
+    declare -A variant_versions={{variant_versions}}
+    version="${variant_versions["{{variant}}"]}"
+
     ./bcvk to-disk \
         --filesystem=btrfs \
         --composefs-backend \
         --bootloader=systemd \
         --format qcow2 \
         --disk-size 20G \
-        {{registry}}/{{variant}}:{{release}} \
-        {{variant}}-{{version}}.qcow2
+        {{dest_registry}}/{{variant}}:{{release}} \
+        {{variant}}-${version}.qcow2
 
 # Move the QCOW2 image to libvirt image store
 [arg('variant', pattern='silverblue|kinoite')]
 move-qcow2-libvirt-images variant:
     #!/bin/bash
     set -euo pipefail
+
+    declare -A variant_versions={{variant_versions}}
+    version="${variant_versions["{{variant}}"]}"
+
     DEST="${HOME}/.local/share/libvirt/images"
-    mv -i {{variant}}-{{version}}.qcow2 "${DEST}"
+    mv -i {{variant}}-${version}.qcow2 "${DEST}"
 
 # Generate an OVMF variable file for EDK2 with the Secure Boot keys included
 generate-ovmf-vars:
@@ -167,11 +200,14 @@ libvirt variant:
     #!/bin/bash
     set -euo pipefail
 
+    declare -A variant_versions={{variant_versions}}
+    version="${variant_versions["{{variant}}"]}"
+
     DEST="${HOME}/.local/share/libvirt/images"
 
-    name="fedora-{{variant}}-{{version}}"
-    image="${DEST}/{{variant}}-{{version}}.qcow2"
-    ovmf_vars="${DEST}/{{variant}}-{{version}}_ovmf_vars.qcow2"
+    name="fedora-{{variant}}-${version}"
+    image="${DEST}/{{variant}}-${version}.qcow2"
+    ovmf_vars="${DEST}/{{variant}}-${version}_ovmf_vars.qcow2"
 
     cp "OVMF_VARS_CUSTOM.qcow2" "${ovmf_vars}"
 
