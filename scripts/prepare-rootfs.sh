@@ -30,26 +30,24 @@ rm -vrf "/usr/lib/ostree-boot"
 rpm -e --nodeps grub2-common grub2-efi-ia32 grub2-efi-x64 grub2-pc \
     grub2-pc-modules grub2-tools grub2-tools-minimal
 
+cat > "/usr/lib/bootc/kargs.d/10-rootfs.toml" << 'EOF'
 # Mount the root filesystem read-write
 # Enable btrfs compression
-cat > "/usr/lib/bootc/kargs.d/10-rootfs.toml" << 'EOF'
 kargs = ["rw", "rootflags=compress=zstd:1"]
 EOF
 
-# Default to btrfs
 cat > "/usr/lib/bootc/install/80-rootfs.toml" << 'EOF'
+# Default to btrfs
 [install.filesystem.root]
 type = "btrfs"
 EOF
 
+cat > "/usr/lib/dracut/dracut.conf.d/20-bootc-base.conf" << 'EOF'
 # Dracut will always fail to set security.selinux xattrs at build time
 # https://github.com/dracut-ng/dracut-ng/issues/1561
-cat > "/usr/lib/dracut/dracut.conf.d/20-bootc-base.conf" << 'EOF'
 export DRACUT_NO_XATTR=1
-EOF
 
 # Enable composefs backend in dracut
-cat > "/usr/lib/dracut/dracut.conf.d/20-bootc-composefs.conf" << 'EOF'
 add_dracutmodules+=" bootc "
 EOF
 
@@ -57,14 +55,19 @@ EOF
 cat > "/usr/lib/dracut/dracut.conf.d/20-omit-modules.conf" << 'EOF'
 # FIPS is not supported on Fedora and you need to do your own build anyway
 omit_dracutmodules+=" fips fips-crypto-policies "
+
 # Do not include support from booting from a LUN SAS devices
 omit_dracutmodules+=" lunmask "
+
 # No LVM support for now
 omit_dracutmodules+=" lvm "
+
 # memstrack is for debug and development
 omit_dracutmodules+=" memstrack "
+
 # We don't include kernel module keys in the initrd
 omit_dracutmodules+=" modsign "
+
 # NSS is not included in the initrd
 omit_dracutmodules+=" nss-softokn "
 EOF
