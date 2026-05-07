@@ -51,6 +51,13 @@ export DRACUT_NO_XATTR=1
 add_dracutmodules+=" bootc "
 EOF
 
+cat > "/usr/lib/dracut/dracut.conf.d/59-altfiles.conf" << 'EOF'
+# https://issues.redhat.com/browse/RHEL-49590
+# On image mode systems we use nss-altfiles for passwd and group,
+# this makes sure dracut uses them which also fixes kdump writing to NFS.
+install_items+=" /usr/lib/passwd /usr/lib/group "
+EOF
+
 # Remove more dracut modules to reduce the size of the initramfs
 cat > "/usr/lib/dracut/dracut.conf.d/20-omit-modules.conf" << 'EOF'
 # FIPS is not supported on Fedora and you need to do your own build anyway
