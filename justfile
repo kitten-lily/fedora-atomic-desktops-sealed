@@ -63,6 +63,19 @@ sign-systemd-boot:
         --secret=id=secureboot_crt,src=keys/db/db.pem \
         --file Containerfile.systemd-boot
 
+# Sign shim with the Secure Boot key
+sign-shim:
+    #!/bin/bash
+    set -euo pipefail
+    podman run --rm -ti --security-opt=label=disable \
+        --volume $(pwd):/run/src --workdir /run/src \
+        {{dest_registry}}/tools:{{release}} \
+        sbsign \
+            --key /run/src/keys/db/db.key \
+            --cert /run/src/keys/db/db.pem \
+            --output /run/src/shimx64-signed.efi \
+            /run/src/shimx64-unsigned.efi
+
 # Build the container image with the tools to build and sign UKIs
 build-tools:
     #!/bin/bash
