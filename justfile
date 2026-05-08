@@ -22,20 +22,19 @@ variant_versions := '(
 )'
 
 # Container registry where the images will be pushed
+# Replace by your own or use 'localhost'
 dest_registry := "quay.io/fedora-atomic-desktops-sealed"
 
 # Major Fedora version used
 release := "44"
 
-# Container image with systemd-boot signed
-# Defaults to locally built container image. Uncomment to use pre-signed binary.
-# systemd_boot_container := "quay.io/fedora-atomic-desktops-sealed/systemd-boot:" + release
-systemd_boot_container := "localhost/systemd-boot:" + release
+# Container image with systemd-boot signed. Will pull pre-signed binary by
+# default. Set 'dest_registry' above for your own builds.
+systemd_boot_container := dest_registry + "/systemd-boot:" + release
 
-# Container image with the tools for signing UKIs
-# Defaults to pre-built image. Uncomment to use locally built container image.
-# signing_tools_container := "localhost/tools:" + release
-signing_tools_container := "quay.io/fedora-atomic-desktops-sealed/tools:" + release
+# Container image with the tools for signing UKIs. Will pull a pre-built image
+# by default. Set 'dest_registry' above for your own builds.
+signing_tools_container := dest_registry + "/tools:" + release
 
 # How to connect to libvirt (either system or session)
 libvirt_uri := "qemu:///system"
@@ -47,7 +46,7 @@ all:
 generate-secure-boot-keys:
     #!/bin/bash
     set -euo pipefail
-    podman build --tag sbctl --file Containerfile.sbctl
+    podman build --tag {{dest_registry}}/sbctl:latest --file Containerfile.sbctl
     podman run --rm -ti --security-opt=label=disable \
         --volume $(pwd):/run/src --workdir /run/src \
         localhost/sbctl:latest create-keys --config sbctl.conf
@@ -57,7 +56,7 @@ sign-systemd-boot:
     #!/bin/bash
     set -euo pipefail
     podman build \
-        --tag systemd-boot:{{release}} \
+        --tag {{dest_registry}}/systemd-boot:{{release}} \
         --build-arg=RELEASE={{release}} \
         --secret=id=secureboot_key,src=keys/db/db.key \
         --secret=id=secureboot_crt,src=keys/db/db.pem \
@@ -81,7 +80,7 @@ build-tools:
     #!/bin/bash
     set -euo pipefail
     podman build \
-        --tag tools:{{release}} \
+        --tag {{dest_registry}}/tools:{{release}} \
         --build-arg=RELEASE={{release}} \
         --file Containerfile.tools
 
