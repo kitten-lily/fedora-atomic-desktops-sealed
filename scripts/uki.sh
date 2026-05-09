@@ -30,7 +30,7 @@ containerukifyargs=(--rootfs "${target}")
 
 # Build the UKI using bootc container ukify
 # This computes the composefs digest, reads kargs from kargs.d, and invokes ukify
-# FIXME: Disabled until we get support for passing the kernel & initrd as parameters
+# FIXME: Disabled until we get support for passing the kernel & initramfs as parameters
 # FIXME: Manual flow below
 # bootc container ukify "${containerukifyargs[@]}" -- "${ukifyargs[@]}"
 
@@ -45,7 +45,7 @@ printf "composefs=${digest} rw"
 printf " rootflags=compress=zstd:1"
 # Suppress console output and enable Plymouth
 printf " quiet rhgb"
-# Debug shell enabled in the initrd and final system
+# Debug shell enabled in the initramfs and final system
 printf " rd.systemd.debug_shell systemd.debug_shell"
 # Workarounds for TPM2 issue in systemd with some older TPM chips
 printf " rd.systemd.mask=systemd-tpm2-setup-early.service"

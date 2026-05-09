@@ -6,8 +6,8 @@ set -euxo pipefail
 
 kver=$(cd "/usr/lib/modules" && echo *)
 
-# Remove the initrd from the base image. We'll rebuilt it in a later stage for
-# each GPU vendor target and include it in the UKI.
+# Remove the initramfs from the base image. We'll rebuilt it in a later stage
+# for each GPU vendor target and include it in the UKI.
 rm "/usr/lib/modules/$kver/initramfs.img"
 
 # Remove the kernel from the base image as we made a copy in another stage. It

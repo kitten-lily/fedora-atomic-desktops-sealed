@@ -72,10 +72,10 @@ omit_dracutmodules+=" lvm "
 # memstrack is for debug and development
 omit_dracutmodules+=" memstrack "
 
-# We don't include kernel module keys in the initrd
+# We don't include kernel module keys in the initramfs
 omit_dracutmodules+=" modsign "
 
-# NSS is not included in the initrd
+# NSS is not included in the initramfs
 omit_dracutmodules+=" nss-softokn "
 EOF
 
@@ -91,7 +91,7 @@ systemctl enable sshd.service
 # Disable root password
 passwd -d root
 
-# Enable systemd debug shell for the initrd & final system
+# Enable systemd debug shell for the initramfs & final system
 cat > "/usr/lib/bootc/kargs.d/10-debug.toml" << 'EOF'
 kargs = ["rd.systemd.debug_shell", "systemd.debug_shell"]
 EOF

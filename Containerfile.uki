@@ -18,15 +18,15 @@ RUN --mount=type=bind,from=scripts,src=/,target=/run/scripts \
     /run/scripts/dracut-config.sh
 
 # Rebuild the initramfs now that dracut's configuration is complete
-FROM rootfs as initrd
+FROM rootfs as initramfs
 RUN --mount=type=bind,from=scripts,src=/,target=/run/scripts \
     /run/scripts/rebuild-initrd.sh
 
 # Build the UKI
 FROM $TOOLS as sealed-uki
-# Copy the kernel and the initrd into the image to build the UKI
+# Copy the kernel and the initramfs into the image to build the UKI
 COPY --from=kernel /vmlinuz /vmlinuz
-COPY --from=initrd /initramfs /initramfs
+COPY --from=initramfs /initramfs /initramfs
 RUN --mount=type=tmpfs,target=/run \
     --mount=type=tmpfs,target=/tmp \
     --mount=type=tmpfs,target=/var/tmp \
