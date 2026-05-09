@@ -26,7 +26,7 @@ ukifyargs+=(
 )
 
 # Baseline container ukify options
-containerukifyargs=(--rootfs "${target}")
+# containerukifyargs=(--rootfs "${target}")
 
 # Build the UKI using bootc container ukify
 # This computes the composefs digest, reads kargs from kargs.d, and invokes ukify
