@@ -79,6 +79,13 @@ omit_dracutmodules+=" modsign "
 omit_dracutmodules+=" nss-softokn "
 EOF
 
+# Include systemd's hwdb
+# See: https://github.com/systemd/systemd/issues/40159
+# See: https://github.com/systemd/systemd/issues/40485
+# cat > "/usr/lib/dracut/dracut.conf.d/20-bootc-composefs.conf" << 'EOF'
+# install_items+=" /etc/udev/hwdb.bin "
+# EOF
+
 # Prepare folders in /boot
 mkdir -p /boot/EFI/Linux
 
