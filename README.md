@@ -7,6 +7,18 @@ Container images are available both on `quay.io` and `ghcr.io`:
 - <https://quay.io/organization/fedora-atomic-desktops-sealed>
 - <https://github.com/travier?tab=packages&repo_name=fedora-atomic-desktops-sealed>
 
+## Why are there `-amd`, `-intel` and `-nvidia` images?
+
+For those images, the initramfs (part of the UKI) only includes the kernel modules and firmwares for the corresponding GPU vendor, thus reducing its size.
+The size of the UKI has an important impact on the boot time.
+See [issue #23](https://github.com/travier/fedora-atomic-desktops-sealed/issues/23).
+
+Note that this only impacts what is included in the initramfs.
+The system content is the same for all images with all kernel modules and firmwares included.
+
+The container images without a suffix include a UKI with all the kernel modules and firmwares for all hardware devices supported on Fedora.
+Use those if you don't know what your GPU vendor is or if you need support for multiple GPUs in the initrd.
+
 ## How to test the pre-built disk images
 
 - Download the pre-built disk image:
