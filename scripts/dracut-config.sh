@@ -14,27 +14,27 @@ fi
 
 if [[ "${GPU_FAMILY}" != "amd" ]]; then
 cat > "/usr/lib/dracut/dracut.conf.d/20-omit-amd-gpu.conf" << 'EOF'
-# Exclude AMD drivers
+# Exclude AMD GPU drivers
 omit_drivers+=" amdgpu amdxcp radeon "
-# Exclude AMD firmwares
+# Exclude AMD GPU firmwares
 remove_items+=" /usr/lib/firmware/amdgpu /usr/lib/firmware/radeon "
 EOF
 fi
 
 if [[ "${GPU_FAMILY}" != "intel" ]]; then
 cat > "/usr/lib/dracut/dracut.conf.d/20-omit-intel-gpu.conf" << 'EOF'
-# Exclude Intel drivers
+# Exclude Intel GPU drivers
 omit_drivers+=" gma500 i915 xe "
-# Exclude Intel firmwares
+# Exclude Intel GPU firmwares
 remove_items+=" /usr/lib/firmware/i915 /usr/lib/firmware/xe "
 EOF
 fi
 
 if [[ "${GPU_FAMILY}" != "nvidia" ]]; then
 cat > "/usr/lib/dracut/dracut.conf.d/20-omit-nvidia-gpu.conf" << 'EOF'
-# Exclude NVIDIA drivers
+# Exclude NVIDIA GPU drivers
 omit_drivers+=" nouveau "
-# Exclude NVIDIA firmwares
+# Exclude NVIDIA GPU firmwares
 remove_items+=" /usr/lib/firmware/nvidia "
 EOF
 fi
