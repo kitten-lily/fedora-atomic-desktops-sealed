@@ -32,7 +32,7 @@ RUN --mount=type=tmpfs,target=/run \
     --mount=type=tmpfs,target=/var/tmp \
     --mount=type=secret,id=secureboot_key \
     --mount=type=secret,id=secureboot_crt \
-    --mount=type=bind,from=rootfs,src=/,target=/run/target,rw \
+    --mount=type=bind,from=rootfs,src=/,target=/run/target,ro \
     --mount=type=bind,target=/run/src,ro \
     --mount=type=bind,from=scripts,src=/,target=/run/scripts \
     /run/scripts/uki.sh
