@@ -14,6 +14,7 @@ on:
       - "main"
     paths:
       - "Containerfile"
+      - "scripts/**"
       - ".github/workflows/bootable-containers.yml"
   # We will need a distinct workflow for pull request builds as we will not
   # have access to secrets for signing in those.
