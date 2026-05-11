@@ -31,8 +31,18 @@ rm -vrf "/usr/lib/bootupd"
 # Legacy ostree folder
 rm -vrf "/usr/lib/ostree-boot"
 # Remove GRUB2
-rpm -e --nodeps grub2-common grub2-efi-ia32 grub2-efi-x64 grub2-pc \
-    grub2-pc-modules grub2-tools grub2-tools-minimal
+grub_packages=(
+    "grub2-common"
+    "grub2-efi-x64"
+    "grub2-pc"
+    "grub2-pc-modules"
+    "grub2-tools"
+    "grub2-tools-minimal"
+)
+if [[ "$(rpm -qa | grep -c grub2-efi-ia32)" -ne 0 ]]; then
+    grub_packages+=("grub2-efi-ia32")
+fi
+rpm -e --nodeps "${grub_packages[@]}"
 
 cat > "/usr/lib/bootc/kargs.d/10-rootfs.toml" << 'EOF'
 # Mount the root filesystem read-write
