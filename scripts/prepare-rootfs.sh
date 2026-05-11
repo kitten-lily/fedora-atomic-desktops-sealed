@@ -42,6 +42,12 @@ cat > "/usr/lib/bootc/install/80-rootfs.toml" << 'EOF'
 type = "btrfs"
 EOF
 
+cat > "/usr/lib/bootc/install/90-install.toml" << 'EOF'
+# Need systemd as the bootloader
+[install]
+bootloader = "systemd"
+EOF
+
 cat > "/usr/lib/dracut/dracut.conf.d/20-bootc-base.conf" << 'EOF'
 # Dracut will always fail to set security.selinux xattrs at build time
 # https://github.com/dracut-ng/dracut-ng/issues/1561
