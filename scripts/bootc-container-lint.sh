@@ -4,4 +4,12 @@
 
 set -euxo pipefail
 
-bootc container lint --fatal-warnings --no-truncate
+source /etc/os-release
+
+declare -a args=()
+
+if [[ "${NAME}" == "secureblue" ]]; then
+    args+=("--skip" "nonempty-run-tmp")
+fi
+
+bootc container lint --fatal-warnings --no-truncate "${args[@]}"

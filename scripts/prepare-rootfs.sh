@@ -102,6 +102,8 @@ mkdir -p /boot/EFI/Linux
 ###############################################################################
 # Changes for development go here
 
+# secureblue: Remove mask
+systemctl unmask sshd.service
 # Enable sshd for bcvk
 systemctl enable sshd.service
 
