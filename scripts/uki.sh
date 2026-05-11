@@ -41,8 +41,10 @@ digest="$(bootc container compute-composefs-digest "${target}")"
 {
 # composefs digest and rw to default to a writable system
 printf "composefs=${digest} rw"
+if [[ $(grep -c "zstd" "${target}/usr/lib/bootc/kargs.d/10-rootfs.toml") == 1 ]]; then
 # Enable btrfs compression for the root mount point
 printf " rootflags=compress=zstd:1"
+fi
 # Suppress console output and enable Plymouth
 printf " quiet rhgb"
 # Debug shell enabled in the initramfs and final system
