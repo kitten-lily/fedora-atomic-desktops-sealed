@@ -19,7 +19,11 @@ dnf remove -y \
     plasma-discover-rpm-ostree
 
 # Install latest bootc release
-dnf upgrade -y --enablerepo=updates-testing --refresh bootc
+# dnf upgrade -y --enablerepo=updates-testing --refresh bootc
+# Get fixed bootc build for image-builder
+dnf install -y 'dnf*-command(copr)'
+dnf copr enable packit/bootc-dev-bootc-2191-full fedora-44-x86_64
+dnf install -y bootc-202605092003.g8af07fe58a-1.fc44.x86_64
 
 # Uninstall bootupd (no support for systemd-boot yet)
 rpm -e bootupd
