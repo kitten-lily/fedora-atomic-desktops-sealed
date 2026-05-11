@@ -25,7 +25,8 @@ COPY --from=systemd-boot /systemd-bootx64.efi /usr/lib/systemd/boot/efi/systemd-
 
 # Make sure we pass the lints
 FROM rootfs-base as lint
-RUN bootc container lint --fatal-warnings --no-truncate
+RUN --mount=type=bind,from=scripts,src=/,target=/run/scripts \
+    /run/scripts/bootc-container-lint.sh
 
 # Remove the kernel and initrd from the base image
 FROM rootfs-base as rootfs
