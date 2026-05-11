@@ -2,6 +2,9 @@
 # SPDX-FileCopyrightText: Timothée Ravier <tim@siosm.fr>
 # SPDX-License-Identifier: CC0-1.0
 
+# The sections inside the if conditionals are intentionally not properly
+# indented to make the heredoc blocks easier to read.
+
 set -euxo pipefail
 
 # We can not ship openh264 in the image
@@ -44,6 +47,19 @@ if [[ "$(rpm -qa | grep -c grub2-efi-ia32)" -ne 0 ]]; then
 fi
 rpm -e --nodeps "${grub_packages[@]}"
 
+
+if rpm -q --quiet fedora-release-identity-basic; then
+
+# bootc base iamges
+cat > "/usr/lib/bootc/install/80-rootfs.toml" << 'EOF'
+# Default to ext4
+[install.filesystem.root]
+type = "ext4"
+EOF
+
+else
+
+# All Atomic Desktops
 cat > "/usr/lib/bootc/kargs.d/10-rootfs.toml" << 'EOF'
 # Mount the root filesystem read-write
 # Enable btrfs compression
@@ -55,6 +71,8 @@ cat > "/usr/lib/bootc/install/80-rootfs.toml" << 'EOF'
 [install.filesystem.root]
 type = "btrfs"
 EOF
+
+fi
 
 cat > "/usr/lib/bootc/install/90-install.toml" << 'EOF'
 # Need systemd as the bootloader
