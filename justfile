@@ -17,8 +17,8 @@ variant_versions := '(
     [silverblue]="44.20260504.0"
     [kinoite]="44.20260504.0"
     [bootc]="20260505-211509"
-    [secureblue-silverblue]="latest"
-    [secureblue-kinoite]="latest"
+    [secureblue-silverblue]="20260507-44"
+    [secureblue-kinoite]="20260507-44"
 )'
 
 # Container registry where the images will be pushed
