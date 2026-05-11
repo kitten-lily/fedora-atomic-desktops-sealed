@@ -174,8 +174,14 @@ qcow2 variant:
     declare -A variant_versions={{variant_versions}}
     version="${variant_versions["{{variant}}"]}"
 
+    # Default to btrfs for the Atomic Desktops
+    filesystem="btrfs"
+    if [[ "{{variant}}" == "bootc" ]]; then
+        filesystem="ext4"
+    fi
+
     ./bcvk to-disk \
-        --filesystem=btrfs \
+        --filesystem="${filesystem}" \
         --composefs-backend \
         --bootloader=systemd \
         --format qcow2 \
