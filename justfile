@@ -49,7 +49,7 @@ generate-secure-boot-keys:
     podman build --tag {{dest_registry}}/sbctl:latest --file Containerfile.sbctl
     podman run --rm -ti --security-opt=label=disable \
         --volume $(pwd):/run/src --workdir /run/src \
-        localhost/sbctl:latest create-keys --config sbctl.conf
+        {{dest_registry}}/sbctl:latest create-keys --config sbctl.conf
 
 # Sign systemd-boot with the Secure Boot key
 sign-systemd-boot:
