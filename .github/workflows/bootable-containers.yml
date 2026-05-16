@@ -85,6 +85,7 @@ jobs:
           image: ${{ env.REPO_NAME }}/${{ matrix.variant }}-kernel
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }}
           containerfiles: Containerfile.kernel
+          oci: true
           build-args: |
             BASE=quay.io/fedora-ostree-desktops/${{ matrix.variant }}:${{ matrix.release }}.${{ steps.version.outputs.version }}
 
@@ -94,6 +95,7 @@ jobs:
           image: ${{ env.REPO_NAME }}/${{ matrix.variant }}-base
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }}
           containerfiles: Containerfile.base
+          oci: true
           build-args: |
             BASE=quay.io/fedora-ostree-desktops/${{ matrix.variant }}:${{ matrix.release }}.${{ steps.version.outputs.version }}
             SYSTEMDBOOT=quay.io/fedora-atomic-desktops-sealed/systemd-boot:${{ matrix.release }}
@@ -108,6 +110,7 @@ jobs:
           image: ${{ env.REPO_NAME }}/${{ matrix.variant }}
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }} ${{ matrix.release }}
           containerfiles: Containerfile.uki
+          oci: true
           build-args: |
             BASE=${{ env.REPO_NAME }}/${{ matrix.variant }}-base:${{ matrix.release }}.${{ steps.version.outputs.version }}
             KERNEL=${{ env.REPO_NAME }}/${{ matrix.variant }}-kernel:${{ matrix.release }}.${{ steps.version.outputs.version }}
@@ -125,6 +128,7 @@ jobs:
           image: ${{ env.REPO_NAME }}/${{ matrix.variant }}-intel
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }} ${{ matrix.release }}
           containerfiles: Containerfile.uki
+          oci: true
           build-args: |
             BASE=${{ env.REPO_NAME }}/${{ matrix.variant }}-base:${{ matrix.release }}.${{ steps.version.outputs.version }}
             KERNEL=${{ env.REPO_NAME }}/${{ matrix.variant }}-kernel:${{ matrix.release }}.${{ steps.version.outputs.version }}
@@ -142,6 +146,7 @@ jobs:
           image: ${{ env.REPO_NAME }}/${{ matrix.variant }}-amd
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }} ${{ matrix.release }}
           containerfiles: Containerfile.uki
+          oci: true
           build-args: |
             BASE=${{ env.REPO_NAME }}/${{ matrix.variant }}-base:${{ matrix.release }}.${{ steps.version.outputs.version }}
             KERNEL=${{ env.REPO_NAME }}/${{ matrix.variant }}-kernel:${{ matrix.release }}.${{ steps.version.outputs.version }}
@@ -159,6 +164,7 @@ jobs:
           image: ${{ env.REPO_NAME }}/${{ matrix.variant }}-nvidia
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }} ${{ matrix.release }}
           containerfiles: Containerfile.uki
+          oci: true
           build-args: |
             BASE=${{ env.REPO_NAME }}/${{ matrix.variant }}-base:${{ matrix.release }}.${{ steps.version.outputs.version }}
             KERNEL=${{ env.REPO_NAME }}/${{ matrix.variant }}-kernel:${{ matrix.release }}.${{ steps.version.outputs.version }}
