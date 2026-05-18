@@ -22,7 +22,7 @@ on:
       - ".github/Containerfile.buildroot"
       - ".github/workflows/buildroot.yml"
   schedule:
-    - cron:  "0 0 * * MON"
+    - cron: "0 0 * * MON"
   workflow_dispatch:
 
 # Allow:
@@ -31,6 +31,7 @@ on:
 permissions:
   contents: "read"
   packages: "write"
+  id-token: "write"
 
 # Prevent multiple workflow runs from racing to ensure that pushes are made
 # sequentialy for the main branch. Also cancel in progress workflow runs.
@@ -44,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: ['44']
+        release: ["44"]
     steps:
       - name: "Checkout repo"
         uses: actions/checkout@v6
@@ -110,7 +111,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: ['44']
+        release: ["44"]
     steps:
       - name: "Login to Container Registry"
         uses: redhat-actions/podman-login@v1
@@ -143,13 +144,12 @@ jobs:
           tags: ${{ matrix.release }}
 
       - name: "Setup cosign"
-        uses: sigstore/cosign-installer@v3.10.0
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
         if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
 
       - name: "Sign container image"
         if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         run: |
-          cosign sign -y --recursive=true --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY }}/${{ env.NAME }}@${{ steps.push.outputs.digest }}
+          cosign sign -y --recursive=true ${{ env.REGISTRY }}/${{ env.NAME }}@${{ steps.push.outputs.digest }}
         env:
           COSIGN_EXPERIMENTAL: false
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
