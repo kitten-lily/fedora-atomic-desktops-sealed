@@ -20,6 +20,13 @@ RUN --mount=type=tmpfs,target=/run \
     --mount=type=bind,from=scripts,src=/,target=/run/scripts \
     /run/scripts/prepare-rootfs.sh
 
+# Customizations done to the base image
+RUN --mount=type=tmpfs,target=/run \
+    --mount=type=tmpfs,target=/tmp \
+    --mount=type=tmpfs,target=/var \
+    --mount=type=bind,from=scripts,src=/,target=/run/scripts \
+    /run/scripts/lily.sh
+
 # Replace Fedora's systemd-boot with our signed one
 COPY --from=systemd-boot /systemd-bootx64.efi /usr/lib/systemd/boot/efi/systemd-bootx64.efi
 

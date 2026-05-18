@@ -8,7 +8,7 @@
 set -euxo pipefail
 
 # We can not ship openh264 in the image
-rm -f "/etc/yum.repos.d/fedora-cisco-openh264.repo"
+#rm -f "/etc/yum.repos.d/fedora-cisco-openh264.repo"
 
 # Install fsverity utils to make it easier to check things
 # Install systemd-boot (will be replaced by the signed version in a later stage)
@@ -126,33 +126,3 @@ EOF
 
 # Prepare folders in /boot
 mkdir -p /boot/EFI/Linux
-
-###############################################################################
-# Changes for development go here
-
-# secureblue: Remove mask
-systemctl unmask sshd.service
-# Enable sshd for bcvk
-systemctl enable sshd.service
-
-# Disable root password
-passwd -d root
-
-# Enable systemd debug shell for the initramfs & final system
-cat > "/usr/lib/bootc/kargs.d/10-debug.toml" << 'EOF'
-kargs = ["rd.systemd.debug_shell", "systemd.debug_shell"]
-EOF
-
-# Mask some systemd units that currently do not work well with some TPMs
-# See: https://github.com/systemd/systemd/issues/40159
-# See: https://github.com/systemd/systemd/issues/40485
-cat > "/usr/lib/bootc/kargs.d/10-tpm2-workaround.toml" << 'EOF'
-kargs = [
-  "rd.systemd.mask=systemd-tpm2-setup-early.service",
-  "systemd.mask=systemd-tpm2-setup-early.service",
-  "systemd.mask=systemd-tpm2-setup.service",
-  "systemd.mask=systemd-pcrphase.service",
-  "systemd.mask=systemd-pcrproduct.service",
-]
-EOF
-###############################################################################
