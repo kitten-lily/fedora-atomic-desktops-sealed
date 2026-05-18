@@ -22,7 +22,7 @@ on:
   #   branches:
   #     - "main"
   schedule:
-    - cron: '0 4 * * MON'
+    - cron: "0 4 * * MON"
   workflow_dispatch:
 
 # Allow:
@@ -31,6 +31,7 @@ on:
 permissions:
   contents: "read"
   packages: "write"
+  id-token: "write"
 
 # Prevent multiple workflow runs from racing to ensure that pushes are made
 # sequentialy for the main branch. Also cancel in progress workflow runs for
@@ -45,8 +46,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: ['silverblue', 'kinoite']
-        release: ['44', '45']
+        variant: ["silverblue"]
+        release: ["44"]
     steps:
       - name: "Checkout repo"
         uses: actions/checkout@v6
@@ -98,7 +99,7 @@ jobs:
           oci: true
           build-args: |
             BASE=quay.io/fedora-ostree-desktops/${{ matrix.variant }}:${{ matrix.release }}.${{ steps.version.outputs.version }}
-            SYSTEMDBOOT=quay.io/fedora-atomic-desktops-sealed/systemd-boot:${{ matrix.release }}
+            SYSTEMDBOOT=${{ env.REGISTRY_GHCR }}/${{ env.REPO_NAME }}/systemd-boot:${{ matrix.release }}
           extra-args: |
             --skip-unused-stages=false
             --security-opt=label=disable
@@ -106,6 +107,7 @@ jobs:
 
       - name: "Build Generic UKI container image"
         uses: redhat-actions/buildah-build@v2
+        if: false
         with:
           image: ${{ env.REPO_NAME }}/${{ matrix.variant }}
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }} ${{ matrix.release }}
@@ -124,6 +126,7 @@ jobs:
 
       - name: "Build Intel UKI container image"
         uses: redhat-actions/buildah-build@v2
+        if: false
         with:
           image: ${{ env.REPO_NAME }}/${{ matrix.variant }}-intel
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }} ${{ matrix.release }}
@@ -151,7 +154,7 @@ jobs:
             BASE=${{ env.REPO_NAME }}/${{ matrix.variant }}-base:${{ matrix.release }}.${{ steps.version.outputs.version }}
             KERNEL=${{ env.REPO_NAME }}/${{ matrix.variant }}-kernel:${{ matrix.release }}.${{ steps.version.outputs.version }}
             GPU_FAMILY="amd"
-            TOOLS=quay.io/fedora-atomic-desktops-sealed/tools:${{ matrix.release }}
+            TOOLS=${{ env.REGISTRY_GHCR }}/${{ env.REPO_NAME }}/tools:${{ matrix.release }}
           extra-args: |
             --security-opt=label=disable
             --volume /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}:/run/src
@@ -160,6 +163,7 @@ jobs:
 
       - name: "Build NVIDIA UKI container image"
         uses: redhat-actions/buildah-build@v2
+        if: false
         with:
           image: ${{ env.REPO_NAME }}/${{ matrix.variant }}-nvidia
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }} ${{ matrix.release }}
@@ -181,13 +185,14 @@ jobs:
         run: rm -vrf /tmp/keys
 
       - name: "Setup cosign"
-        uses: sigstore/cosign-installer@v3.10.0
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
         if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
 
       - name: "Push generic image to Container Registry (ghcr.io)"
         uses: redhat-actions/push-to-registry@v2
         id: push
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -198,7 +203,8 @@ jobs:
       - name: "Push Intel image to Container Registry (ghcr.io)"
         uses: redhat-actions/push-to-registry@v2
         id: push_intel
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -220,7 +226,8 @@ jobs:
       - name: "Push NVIDIA image to Container Registry (ghcr.io)"
         uses: redhat-actions/push-to-registry@v2
         id: push_nvidia
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -229,7 +236,8 @@ jobs:
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }} ${{ matrix.release }}
 
       - name: "Sign generic container image (ghcr.io)"
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY_GHCR }}/${{ env.REPO_NAME }}/${{ matrix.variant }}@${{ steps.push.outputs.digest }}
         env:
@@ -237,7 +245,8 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
 
       - name: "Sign Intel container image (ghcr.io)"
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY_GHCR }}/${{ env.REPO_NAME }}/${{ matrix.variant }}-intel@${{ steps.push_intel.outputs.digest }}
         env:
@@ -247,13 +256,13 @@ jobs:
       - name: "Sign AMD container image (ghcr.io)"
         if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         run: |
-          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY_GHCR }}/${{ env.REPO_NAME }}/${{ matrix.variant }}-amd@${{ steps.push_amd.outputs.digest }}
+          cosign sign -y ${{ env.REGISTRY_GHCR }}/${{ env.REPO_NAME }}/${{ matrix.variant }}-amd@${{ steps.push_amd.outputs.digest }}
         env:
           COSIGN_EXPERIMENTAL: false
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
 
       - name: "Sign NVIDIA container image (ghcr.io)"
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY_GHCR }}/${{ env.REPO_NAME }}/${{ matrix.variant }}-nvidia@${{ steps.push_nvidia.outputs.digest }}
         env:
@@ -262,7 +271,8 @@ jobs:
 
       - name: "Login to Container Registry (quay.io)"
         uses: redhat-actions/podman-login@v1
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         with:
           registry: ${{ env.REGISTRY_QUAY }}
           username: ${{ secrets.BOT_USERNAME }}
@@ -271,7 +281,8 @@ jobs:
       - name: "Push generic image to Container Registry (quay.io)"
         uses: redhat-actions/push-to-registry@v2
         id: push_quay_io
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         with:
           username: ${{ secrets.BOT_USERNAME }}
           password: ${{ secrets.BOT_SECRET }}
@@ -282,7 +293,8 @@ jobs:
       - name: "Push Intel image to Container Registry (quay.io)"
         uses: redhat-actions/push-to-registry@v2
         id: push_quay_io_intel
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         with:
           username: ${{ secrets.BOT_USERNAME }}
           password: ${{ secrets.BOT_SECRET }}
@@ -293,7 +305,8 @@ jobs:
       - name: "Push AMD image to Container Registry (quay.io)"
         uses: redhat-actions/push-to-registry@v2
         id: push_quay_io_amd
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         with:
           username: ${{ secrets.BOT_USERNAME }}
           password: ${{ secrets.BOT_SECRET }}
@@ -304,7 +317,8 @@ jobs:
       - name: "Push NVIDIA image to Container Registry (quay.io)"
         uses: redhat-actions/push-to-registry@v2
         id: push_quay_io_nvidia
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         with:
           username: ${{ secrets.BOT_USERNAME }}
           password: ${{ secrets.BOT_SECRET }}
@@ -313,7 +327,8 @@ jobs:
           tags: ${{ matrix.release }}.${{ steps.version.outputs.version }} ${{ matrix.release }}
 
       - name: "Sign generic container image (quay.io)"
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY_QUAY }}/${{ env.REPO_NAME }}/${{ matrix.variant }}@${{ steps.push_quay_io.outputs.digest }}
         env:
@@ -321,7 +336,8 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
 
       - name: "Sign Intel container image (quay.io)"
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY_QUAY }}/${{ env.REPO_NAME }}/${{ matrix.variant }}-intel@${{ steps.push_quay_io_intel.outputs.digest }}
         env:
@@ -329,7 +345,8 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
 
       - name: "Sign AMD container image (quay.io)"
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY_QUAY }}/${{ env.REPO_NAME }}/${{ matrix.variant }}-intel@${{ steps.push_quay_io_amd.outputs.digest }}
         env:
@@ -337,7 +354,8 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
 
       - name: "Sign NVIDIA container image (quay.io)"
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        # if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY_QUAY }}/${{ env.REPO_NAME }}/${{ matrix.variant }}-intel@${{ steps.push_quay_io_nvidia.outputs.digest }}
         env:
