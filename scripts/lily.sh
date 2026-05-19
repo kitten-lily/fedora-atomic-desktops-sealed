@@ -196,6 +196,8 @@ PACKAGES=(
     https://proton.me/download/PassDesktop/linux/x64/ProtonPass.rpm
     https://proton.me/download/mail/linux/ProtonMail-desktop-beta.rpm
     tailscale
+    vkbasalt
+    goverlay
 )
 
 dnf install -y --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release
