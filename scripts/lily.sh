@@ -204,13 +204,13 @@ dnf install -y --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/ter
 dnf copr -y enable yalter/niri
 dnf copr -y enable jdxcode/mise
 dnf copr -y enable scottames/ghostty
-dnf copr -y enable scottames/vicinae
+dnf copr -y enable quadratech188/vicinae
 dnf copr -y enable faugus/faugus-launcher
 dnf install -y --setopt=install_weak_deps=False "${PACKAGES[@]}"
 dnf copr -y disable yalter/niri
 dnf copr -y disable jdxcode/mise
 dnf copr -y disable scottames/ghostty
-dnf copr -y disable scottames/vicinae
+dnf copr -y disable quadratech188/vicinae
 dnf copr -y disable faugus/faugus-launcher
 
 # Install Pangolin CLI
